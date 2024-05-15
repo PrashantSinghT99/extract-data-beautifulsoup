@@ -1,0 +1,34 @@
+import requests
+from bs4 import BeautifulSoup
+import json
+
+# URL of the website
+url = "https://www.ciffa.com/member-directory/"
+
+# Send a GET request to the URL
+response = requests.get(url)
+
+# Parse the HTML content of the page
+soup = BeautifulSoup(response.content, "html.parser")
+
+cards = soup.find_all("div", class_="membership-dir-card")
+
+data = []
+for card in cards:
+    card_company = card.find("div", "company").text.split(":")[1].strip()
+    card_location = card.find("div", "location").text.split(":")[1].strip()
+    div = card.find("div", class_="membership-dir-card-body")
+    if div:
+        div["style"] = "display: block;"
+    card_emails = card.find_all("span", class_="email")
+    emails = []
+    for card_email in card_emails:
+        email = card_email.a.text
+        emails.append(email)
+    data.append({"company_name": card_company, "location": card_location, "email": emails})
+
+# Write the data to a JSON file
+with open("extracted_data2.json", "w") as file:
+    json.dump(data, file, indent=4)
+
+print("Data written to extracted_data.json")
